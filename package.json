@@ -1,0 +1,158 @@
+{
+  "name": "local-ai-autocomplete",
+  "displayName": "Local AI Autocomplete",
+  "description": "Inline code completions using local OpenAI-compatible models (Fill-in-the-Middle)",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.86.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "localAiAutocomplete.enableToggle",
+        "title": "Local AI Autocomplete: Toggle Enabled"
+      },
+      {
+        "command": "localAiAutocomplete.refreshModels",
+        "title": "Local AI Autocomplete: Refresh Model List"
+      },
+      {
+        "command": "localAiAutocomplete.openSettings",
+        "title": "Local AI Autocomplete: Open Settings"
+      },
+      {
+        "command": "localAiAutocomplete.setApiKey",
+        "title": "Local AI Autocomplete: Set API Key"
+      },
+      {
+        "command": "localAiAutocomplete.showOutput",
+        "title": "Local AI Autocomplete: Show Log"
+      }
+    ],
+    "configuration": {
+      "title": "Local AI Autocomplete",
+      "properties": {
+        "localAiAutocomplete.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline AI completions."
+        },
+        "localAiAutocomplete.baseUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:1234/v1",
+          "description": "OpenAI-compatible API base URL (include /v1 if your server uses it)."
+        },
+        "localAiAutocomplete.model": {
+          "type": "string",
+          "default": "",
+          "description": "Model ID for completions (exact id from your server, e.g. from GET /v1/models)."
+        },
+        "localAiAutocomplete.maxTokens": {
+          "type": "number",
+          "default": 128,
+          "minimum": 1,
+          "maximum": 4096,
+          "description": "Maximum tokens per completion."
+        },
+        "localAiAutocomplete.temperature": {
+          "type": "number",
+          "default": 0.2,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Sampling temperature."
+        },
+        "localAiAutocomplete.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "maximum": 5000,
+          "description": "Milliseconds to wait after typing before requesting a completion."
+        },
+        "localAiAutocomplete.requestTimeoutMs": {
+          "type": "number",
+          "default": 15000,
+          "minimum": 1000,
+          "description": "HTTP request timeout in milliseconds."
+        },
+        "localAiAutocomplete.prefixMaxChars": {
+          "type": "number",
+          "default": 8192,
+          "minimum": 256,
+          "description": "Maximum characters of prefix (before cursor) sent to the model."
+        },
+        "localAiAutocomplete.suffixMaxChars": {
+          "type": "number",
+          "default": 4096,
+          "minimum": 0,
+          "description": "Maximum characters of suffix (after cursor) sent to the model."
+        },
+        "localAiAutocomplete.fimMode": {
+          "type": "string",
+          "enum": [
+            "completions",
+            "completions_suffix",
+            "template",
+            "chat_pseudo_fim"
+          ],
+          "enumDescriptions": [
+            "POST /completions with prompt (prefix) only — use with vLLM and servers that reject suffix.",
+            "POST /completions with prompt (prefix) and suffix fields.",
+            "POST /completions with a single templated prompt (e.g. CodeLlama PRE/SUF/MID tokens).",
+            "Escape hatch: POST /chat/completions with fenced prefix/suffix — not true FiM; quality varies by model."
+          ],
+          "default": "completions_suffix",
+          "description": "How to encode Fill-in-the-Middle for the API."
+        },
+        "localAiAutocomplete.fimTemplate": {
+          "type": "string",
+          "default": "<PRE>{prefix}<SUF>{suffix}<MID>",
+          "description": "Prompt template when fimMode is template. Placeholders: {prefix}, {suffix}."
+        },
+        "localAiAutocomplete.stop": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "\n\n"
+          ],
+          "description": "Stop sequences for the completions API."
+        },
+        "localAiAutocomplete.languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Language IDs to enable (empty = all file documents)."
+        },
+        "localAiAutocomplete.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Log detailed information to the Local AI Autocomplete output channel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && tsc -p ./tsconfig.test.json",
+    "watch": "tsc -watch -p ./",
+    "lint": "tsc -p ./ --noEmit && tsc -p ./tsconfig.test.json --noEmit",
+    "test": "npm run compile && node -r ./test/vscode-stub.cjs --test out-test/test/unit/*.test.js out-test/test/integration/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.86.0",
+    "typescript": "^5.5.0"
+  }
+}
