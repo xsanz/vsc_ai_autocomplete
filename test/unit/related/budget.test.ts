@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { assembleRelatedText, sortRefsByPriority } from '../../../src/completion/related/budget';
+import {
+	assembleRelatedText,
+	dedupeRefsByName,
+	sortRefsByPriority,
+} from '../../../src/completion/related/budget';
 import type { RelatedSymbolRef } from '../../../src/completion/related/types';
 
 describe('sortRefsByPriority', () => {
@@ -11,6 +15,25 @@ describe('sortRefsByPriority', () => {
 		];
 		const sorted = sortRefsByPriority(refs);
 		assert.equal(sorted[0].name, 'A');
+	});
+
+	it('dedupeRefsByName keeps extends over import for same name', () => {
+		const refs: RelatedSymbolRef[] = [
+			{ name: 'Model', position: { line: 1, character: 0 } as never, kind: 'import' },
+			{ name: 'Model', position: { line: 0, character: 0 } as never, kind: 'extends' },
+		];
+		const deduped = dedupeRefsByName(refs);
+		assert.equal(deduped.length, 1);
+		assert.equal(deduped[0].kind, 'extends');
+	});
+
+	it('orders extends before import', () => {
+		const refs: RelatedSymbolRef[] = [
+			{ name: 'M', position: { line: 0, character: 0 } as never, kind: 'import' },
+			{ name: 'M', position: { line: 0, character: 0 } as never, kind: 'extends' },
+		];
+		const sorted = sortRefsByPriority(refs);
+		assert.equal(sorted[0].kind, 'extends');
 	});
 });
 

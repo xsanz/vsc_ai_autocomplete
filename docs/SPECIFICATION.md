@@ -133,6 +133,8 @@ All settings under namespace `localAiAutocomplete.*` (final ID to match marketpl
 | `relatedContextMaxChars` | number | `8192` | Max total chars from related files per request. |
 | `relatedContextMaxFiles` | number | `5` | Max related files per request. |
 | `relatedContextStrategy` | enum | `auto` | `auto`, `lsp_only`, or `heuristic_only` (§6.6). |
+| `relatedContextIncludeImports` | boolean | `true` | Include file-level imports when gathering related context. |
+| `relatedContextAllowVendor` | boolean | `true` | Allow vendor/node_modules paths in related context. |
 
 ### 4.2 API key
 
@@ -285,7 +287,7 @@ sequenceDiagram
 
 ### 6.6 Related context
 
-When `includeRelatedContext` is true, before cache lookup the provider gathers snippets from other workspace files linked by type declarations on the active document. Resolution is **LSP-first** (`Definition` / `TypeDefinition`), then generic declaration heuristics and `workspace.findFiles`. Payload is prepended to the model prompt only; ghost-text insertion still uses the active document prefix/suffix. Fail-open on errors. Disable `includeRelatedContext` to restrict HTTP payload to the active file only.
+When `includeRelatedContext` is true, before cache lookup the provider gathers snippets from other workspace files linked by **type declarations** and optional **file-level imports** (`relatedContextIncludeImports`). Resolution is **LSP-first** (`Definition` / `TypeDefinition`), then generic declaration heuristics and `workspace.findFiles` (vendor/`node_modules` governed by `relatedContextAllowVendor`). Payload is prepended to the model prompt only; ghost-text insertion still uses the active document prefix/suffix. Fail-open on errors. Disable `includeRelatedContext` to restrict HTTP payload to the active file only.
 
 Technical detail: [RELATED_CONTEXT.md](RELATED_CONTEXT.md).
 

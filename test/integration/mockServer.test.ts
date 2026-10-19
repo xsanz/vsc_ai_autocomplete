@@ -25,6 +25,8 @@ function baseConfig(overrides: Partial<ExtensionConfig> = {}): ExtensionConfig {
 		relatedContextMaxChars: 8192,
 		relatedContextMaxFiles: 5,
 		relatedContextStrategy: 'auto',
+		relatedContextIncludeImports: true,
+		relatedContextAllowVendor: true,
 		...overrides,
 	};
 }

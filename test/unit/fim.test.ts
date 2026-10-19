@@ -3,11 +3,17 @@ import assert from 'node:assert/strict';
 import {
 	buildChatBody,
 	buildCompletionsBody,
+	buildFimHttpRequest,
 	CHAT_PSEUDO_FIM_SYSTEM,
 	fimRequestPayloadSizes,
 	parseChatResponse,
 	parseCompletionsResponse,
 } from '../../src/api/fim';
+import {
+	clearLastCapturedRequest,
+	getLastCapturedRequest,
+	setLastCapturedRequest,
+} from '../../src/api/lastRequestCapture';
 import type { ExtensionConfig } from '../../src/config';
 
 function baseConfig(overrides: Partial<ExtensionConfig> = {}): ExtensionConfig {
@@ -30,6 +36,8 @@ function baseConfig(overrides: Partial<ExtensionConfig> = {}): ExtensionConfig {
 		relatedContextMaxChars: 8192,
 		relatedContextMaxFiles: 5,
 		relatedContextStrategy: 'auto',
+		relatedContextIncludeImports: true,
+		relatedContextAllowVendor: true,
 		...overrides,
 	};
 }
@@ -151,6 +159,46 @@ describe('fimRequestPayloadSizes', () => {
 			config: baseConfig({ fimMode: 'chat_pseudo_fim' }),
 		});
 		assert.ok(sizes.chatUserChars > 0);
+	});
+});
+
+describe('buildFimHttpRequest', () => {
+	it('uses /completions for completions_suffix', () => {
+		const { path, body } = buildFimHttpRequest({
+			prefix: 'a',
+			suffix: 'b',
+			config: baseConfig({ fimMode: 'completions_suffix' }),
+			relatedContext: 'REL',
+		});
+		assert.equal(path, '/completions');
+		assert.match(String(body.prompt), /REL/);
+		assert.equal(body.suffix, 'b');
+	});
+
+	it('uses /chat/completions for chat_pseudo_fim', () => {
+		const { path, body } = buildFimHttpRequest({
+			prefix: 'a',
+			suffix: 'b',
+			config: baseConfig({ fimMode: 'chat_pseudo_fim' }),
+		});
+		assert.equal(path, '/chat/completions');
+		assert.ok(Array.isArray(body.messages));
+	});
+});
+
+describe('lastRequestCapture', () => {
+	it('stores body for manual replay', () => {
+		clearLastCapturedRequest();
+		setLastCapturedRequest(
+			'http://127.0.0.1:8000/v1',
+			'/completions',
+			{ model: 'm', prompt: 'p' },
+			'completions'
+		);
+		const cap = getLastCapturedRequest();
+		assert.ok(cap?.url.endsWith('/completions'));
+		assert.equal(cap?.body.prompt, 'p');
+		clearLastCapturedRequest();
 	});
 });
 

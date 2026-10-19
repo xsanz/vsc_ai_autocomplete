@@ -52,7 +52,9 @@ export function activate(context: vscode.ExtensionContext): void {
 					e.affectsConfiguration('localAiAutocomplete.includeRelatedContext') ||
 					e.affectsConfiguration('localAiAutocomplete.relatedContextMaxChars') ||
 					e.affectsConfiguration('localAiAutocomplete.relatedContextMaxFiles') ||
-					e.affectsConfiguration('localAiAutocomplete.relatedContextStrategy')
+					e.affectsConfiguration('localAiAutocomplete.relatedContextStrategy') ||
+					e.affectsConfiguration('localAiAutocomplete.relatedContextIncludeImports') ||
+					e.affectsConfiguration('localAiAutocomplete.relatedContextAllowVendor')
 				) {
 					provider?.clearCache();
 				}
@@ -200,6 +202,20 @@ function registerCommands(context: vscode.ExtensionContext): void {
 				'workbench.action.openSettings',
 				'localAiAutocomplete'
 			);
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('localAiAutocomplete.copyLastApiPayload', async () => {
+			const { copyLastApiPayloadToClipboard } = await import('./api/saveLastPayload');
+			await copyLastApiPayloadToClipboard();
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('localAiAutocomplete.saveLastApiPayload', async () => {
+			const { saveLastApiPayloadToWorkspace } = await import('./api/saveLastPayload');
+			await saveLastApiPayloadToWorkspace(context.secrets, getApiKey);
 		})
 	);
 }

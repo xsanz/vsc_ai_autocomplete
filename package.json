@@ -36,6 +36,14 @@
       {
         "command": "localAiAutocomplete.showOutput",
         "title": "Local AI Autocomplete: Show Log"
+      },
+      {
+        "command": "localAiAutocomplete.copyLastApiPayload",
+        "title": "Local AI Autocomplete: Copy Last API Payload (JSON)"
+      },
+      {
+        "command": "localAiAutocomplete.saveLastApiPayload",
+        "title": "Local AI Autocomplete: Save Last API Payload to Workspace"
       }
     ],
     "configuration": {
@@ -169,6 +177,16 @@
           ],
           "default": "auto",
           "description": "How to resolve related types to workspace files."
+        },
+        "localAiAutocomplete.relatedContextIncludeImports": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include file-level imports (use/import/using) when gathering related context."
+        },
+        "localAiAutocomplete.relatedContextAllowVendor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow vendor/ and node_modules/ paths in related context (full file when resolved)."
         }
       }
     }

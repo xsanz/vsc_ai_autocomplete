@@ -4,6 +4,8 @@ import {
 	wrapPrefixWithRelatedContext,
 } from '../completion/related/prompt';
 import { apiPost, readJsonOrThrow, RequestOptions } from './client';
+import { setLastCapturedRequest } from './lastRequestCapture';
+import { log } from '../ui/output';
 
 export const CHAT_PSEUDO_FIM_SYSTEM =
 	'You are a code completion assistant. The user will provide code before and after the cursor. ' +
@@ -111,21 +113,37 @@ export async function fimComplete(
 	opts: RequestOptions
 ): Promise<string | undefined> {
 	const { config } = req;
-	if (config.fimMode === 'chat_pseudo_fim') {
-		const body = buildChatBody(req);
-		const res = await apiPost('/chat/completions', body, opts);
-		const json = await readJsonOrThrow(res);
-		return parseChatResponse(json);
+	const { path, body } = buildFimHttpRequest(req);
+	setLastCapturedRequest(opts.baseUrl, path, body, config.fimMode);
+	if (config.debug) {
+		const bytes = JSON.stringify(body).length;
+		log(
+			`API payload captured (${path}, ~${bytes} JSON bytes). Use commands: Save Last API Payload / Copy Last API Payload`,
+			true
+		);
 	}
 
-	const body = buildCompletionsBody(req);
-	const res = await apiPost('/completions', body, opts);
+	const res = await apiPost(path, body, opts);
 	const json = await readJsonOrThrow(res);
+	if (config.fimMode === 'chat_pseudo_fim') {
+		return parseChatResponse(json);
+	}
 	return parseCompletionsResponse(json);
 }
 
 export function usesChatEndpoint(mode: FimMode): boolean {
 	return mode === 'chat_pseudo_fim';
+}
+
+/** HTTP path and JSON body exactly as sent to the OpenAI-compatible API. */
+export function buildFimHttpRequest(req: FimRequest): {
+	path: string;
+	body: Record<string, unknown>;
+} {
+	if (usesChatEndpoint(req.config.fimMode)) {
+		return { path: '/chat/completions', body: buildChatBody(req) };
+	}
+	return { path: '/completions', body: buildCompletionsBody(req) };
 }
 
 export interface FimPayloadSizes {

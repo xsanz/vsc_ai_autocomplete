@@ -56,10 +56,31 @@ When **Include Related Context** is enabled (default), the extension may attach 
 | `includeRelatedContext` | On by default; set `false` to send **only** the active file to your server |
 | `relatedContextMaxChars` / `relatedContextMaxFiles` | Cap payload size |
 | `relatedContextStrategy` | `auto`, `lsp_only`, or `heuristic_only` |
+| `relatedContextIncludeImports` | Include file-level `use` / `import` / `using` (default on) |
+| `relatedContextAllowVendor` | Include resolved `vendor/` and `node_modules/` files (default on; large prompts) |
 
-Install a language extension for best results. Enable **debug** and **Show Log** to see related paths, a **related context snippet** (truncated), editor prefix/suffix snippets, and **API payload** char counts per request. Related + prefix must fit your server context window (lower `prefixMaxChars` or `relatedContextMaxChars` on vLLM if needed).
+Install a language extension for best results. Enable **debug** and **Show Log** to see related paths with **`(lsp)`** or **`(heuristic)`**, per-symbol resolve lines, strategy, a **related context snippet** (truncated), editor prefix/suffix snippets, and **API payload** char counts per request. Related + prefix must fit your server context window (lower `prefixMaxChars` or `relatedContextMaxChars` on vLLM if needed).
 
 Details: [docs/RELATED_CONTEXT.md](docs/RELATED_CONTEXT.md)
+
+## Manual API testing (reproduce payload)
+
+Each inline completion **captures** the exact JSON body sent to your server (updated on every request).
+
+1. In the editor, trigger a completion (same cursor/settings you want to test). The capture runs when the extension **calls the API** (not on cache hits—nudge the cursor or wait ~5s if needed).
+2. Command Palette:
+   - **Local AI Autocomplete: Save Last API Payload to Workspace** — writes `local-ai-last-completions-payload.json` and `local-ai-last-completions-curl.sh` in the workspace root.
+   - **Local AI Autocomplete: Copy Last API Payload (JSON)** — clipboard only (handy for large prompts).
+3. From the workspace root:
+
+```bash
+chmod +x local-ai-last-completions-curl.sh
+./local-ai-last-completions-curl.sh
+```
+
+Or: `curl ... -d @local-ai-last-completions-payload.json` (see the generated shell script for your `baseUrl`).
+
+Enable **debug** to log when a payload is captured. If no completion ran yet (or the request was never sent), the commands warn that nothing was captured.
 
 ## Development
 

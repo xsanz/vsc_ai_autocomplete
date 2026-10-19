@@ -79,7 +79,14 @@ export class LocalAiInlineCompletionProvider implements vscode.InlineCompletionI
 		if (token.isCancellationRequested) {
 			return undefined;
 		}
-		logRelatedContextDebug(related.paths, related.text.length, related.text);
+		logRelatedContextDebug({
+			strategy: config.relatedContextStrategy,
+			charCount: related.text.length,
+			text: related.text,
+			entries: related.entries,
+			skipped: related.skipped,
+			debug: config.debug,
+		});
 
 		const fimReq = { prefix, suffix, config, relatedContext: related.text };
 		logFimPayloadDebug(fimRequestPayloadSizes(fimReq));

@@ -25,6 +25,8 @@ export interface ExtensionConfig {
 	relatedContextMaxChars: number;
 	relatedContextMaxFiles: number;
 	relatedContextStrategy: RelatedContextStrategy;
+	relatedContextIncludeImports: boolean;
+	relatedContextAllowVendor: boolean;
 }
 
 export function getConfig(): ExtensionConfig {
@@ -48,6 +50,8 @@ export function getConfig(): ExtensionConfig {
 		relatedContextMaxChars: c.get<number>('relatedContextMaxChars', 8192),
 		relatedContextMaxFiles: c.get<number>('relatedContextMaxFiles', 5),
 		relatedContextStrategy: c.get<RelatedContextStrategy>('relatedContextStrategy', 'auto'),
+		relatedContextIncludeImports: c.get<boolean>('relatedContextIncludeImports', true),
+		relatedContextAllowVendor: c.get<boolean>('relatedContextAllowVendor', true),
 	};
 }
 

@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import type { RelatedContextLogInput } from './relatedContextLog';
+import { buildRelatedContextLogLines } from './relatedContextLog';
 import { simpleHash } from '../util/hash';
 
 const CHANNEL_NAME = 'Local AI Autocomplete';
@@ -54,28 +56,21 @@ export function logContextDebug(prefix: string, suffix: string): void {
 	);
 }
 
-export function logRelatedContextDebug(
-	paths: string[],
-	charCount: number,
-	text = ''
-): void {
+export type { RelatedContextLogInput } from './relatedContextLog';
+
+export function logRelatedContextDebug(input: RelatedContextLogInput): void {
 	const cfg = vscode.workspace.getConfiguration('localAiAutocomplete');
 	const debug = cfg.get<boolean>('debug', false);
+	const lines = buildRelatedContextLogLines({ ...input, debug });
 
-	if (paths.length === 0) {
-		log('Related context: none', true);
-		return;
-	}
-	log(
-		`Related context: ${paths.length} file(s), ${charCount} chars — ${paths.join(', ')}`,
-		true
-	);
-	if (debug && text.length > 0) {
-		const snip =
-			text.length <= SNIPPET_MAX
-				? text
-				: text.slice(0, SNIPPET_MAX) + '…';
-		log(`Related context snippet: ${JSON.stringify(snip)}`);
+	for (const line of lines) {
+		const debugOnly =
+			line.startsWith('Related context: none') || line.startsWith('Related context:');
+		if (debugOnly) {
+			log(line, true);
+		} else {
+			log(line);
+		}
 	}
 }
 

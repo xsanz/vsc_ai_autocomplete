@@ -1,11 +1,24 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-const EXCLUDE_GLOB = '**/{node_modules,vendor,.git}/**';
+const EXCLUDE_VENDOR_GLOB = '**/{node_modules,vendor,.git}/**';
+const EXCLUDE_GIT_ONLY = '**/.git/**';
+
+export function fallbackExcludeGlob(allowVendor: boolean): string {
+	return allowVendor ? EXCLUDE_GIT_ONLY : EXCLUDE_VENDOR_GLOB;
+}
+
+export function isVendorOrNodeModulesPath(fsPath: string): boolean {
+	const normalized = fsPath.replace(/\\/g, '/');
+	return (
+		/(?:^|\/)(?:vendor|node_modules)(?:\/|$)/.test(normalized)
+	);
+}
 
 export async function resolveFallbackUri(
 	name: string,
 	document: vscode.TextDocument,
+	allowVendor: boolean,
 	token?: vscode.CancellationToken
 ): Promise<vscode.Uri | undefined> {
 	const folder = vscode.workspace.getWorkspaceFolder(document.uri);
@@ -14,7 +27,11 @@ export async function resolveFallbackUri(
 	}
 
 	const pattern = new vscode.RelativePattern(folder, `**/${name}.*`);
-	const files = await vscode.workspace.findFiles(pattern, EXCLUDE_GLOB, 20);
+	const files = await vscode.workspace.findFiles(
+		pattern,
+		fallbackExcludeGlob(allowVendor),
+		20
+	);
 	if (token?.isCancellationRequested) {
 		return undefined;
 	}

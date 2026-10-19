@@ -40,7 +40,7 @@ function collectFromImplements(
 	IMPLEMENTS_RE.lastIndex = 0;
 	let m: RegExpExecArray | null;
 	while ((m = IMPLEMENTS_RE.exec(text)) !== null) {
-		addNamesFromClause(m[1], 'implements', m.index, m[0], document, refs);
+		parseClauseAfterKeyword(m[0], m.index, 'implements', 'implements', document, refs);
 	}
 }
 
@@ -52,7 +52,7 @@ function collectFromExtends(
 	EXTENDS_RE.lastIndex = 0;
 	let m: RegExpExecArray | null;
 	while ((m = EXTENDS_RE.exec(text)) !== null) {
-		addNamesFromClause(m[2], 'extends', m.index, m[0], document, refs);
+		parseClauseAfterKeyword(m[0], m.index, 'extends', 'extends', document, refs);
 	}
 }
 
@@ -64,15 +64,44 @@ function collectFromInherits(
 	INHERITS_RE.lastIndex = 0;
 	let m: RegExpExecArray | null;
 	while ((m = INHERITS_RE.exec(text)) !== null) {
-		addNamesFromClause(m[1], 'inherits', m.index, m[0], document, refs);
+		const colonRe = /:\s*/;
+		const cm = colonRe.exec(m[0]);
+		if (!cm) {
+			continue;
+		}
+		let rest = m[0].slice(cm.index + cm[0].length);
+		rest = rest.replace(/\s*\{[\s\S]*$/, '').replace(/\s+where\b[\s\S]*$/, '').trim();
+		const clauseDocOffset = m.index + cm.index + cm[0].length;
+		addNamesFromClauseText(rest, clauseDocOffset, 'inherits', document, refs);
 	}
 }
 
-function addNamesFromClause(
-	clause: string,
-	kind: RelatedSymbolKind,
+function parseClauseAfterKeyword(
+	fullMatch: string,
 	matchIndex: number,
-	matchText: string,
+	keyword: 'extends' | 'implements',
+	kind: RelatedSymbolKind,
+	document: vscode.TextDocument,
+	refs: RelatedSymbolRef[]
+): void {
+	const re = new RegExp(`\\b${keyword}\\s+`);
+	const km = re.exec(fullMatch);
+	if (!km) {
+		return;
+	}
+	let rest = fullMatch.slice(km.index + km[0].length);
+	if (keyword === 'extends') {
+		rest = rest.replace(/\s+implements[\s\S]*$/, '');
+	}
+	rest = rest.replace(/\s*\{[\s\S]*$/, '').trim();
+	const clauseDocOffset = matchIndex + km.index + km[0].length;
+	addNamesFromClauseText(rest, clauseDocOffset, kind, document, refs);
+}
+
+function addNamesFromClauseText(
+	clause: string,
+	clauseDocOffset: number,
+	kind: RelatedSymbolKind,
 	document: vscode.TextDocument,
 	refs: RelatedSymbolRef[]
 ): void {
@@ -84,18 +113,24 @@ function addNamesFromClause(
 		}
 		const shortName =
 			name.includes('\\') ? (name.split('\\').pop() ?? name) : (name.split('.').pop() ?? name);
-		const nameOffsetInMatch = matchText.indexOf(shortName, searchFrom);
-		if (nameOffsetInMatch < 0) {
+		const nameRe = new RegExp(`\\b${escapeRegExp(shortName)}\\b`, 'g');
+		nameRe.lastIndex = searchFrom;
+		const nm = nameRe.exec(clause);
+		if (!nm) {
 			continue;
 		}
-		searchFrom = nameOffsetInMatch + shortName.length;
-		const offset = matchIndex + nameOffsetInMatch;
+		searchFrom = nm.index + shortName.length;
+		const offset = clauseDocOffset + nm.index;
 		refs.push({
 			name: shortName,
 			position: document.positionAt(offset),
 			kind,
 		});
 	}
+}
+
+function escapeRegExp(s: string): string {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function dedupeRefs(refs: RelatedSymbolRef[]): RelatedSymbolRef[] {

@@ -28,6 +28,16 @@ describe('discoverRelatedSymbolsInText', () => {
 		assert.ok(refs.some((r) => r.name === 'ProductInterface' && r.kind === 'implements'));
 	});
 
+	it('positions extends Model after the extends keyword, not inside the class name', () => {
+		const line = 'class ProductModel extends Model implements ProductInterface {';
+		const refs = discoverRelatedSymbolsInText(line + '\n');
+		const model = refs.find((r) => r.name === 'Model' && r.kind === 'extends');
+		assert.ok(model);
+		const extendsIdx = line.indexOf('extends ');
+		const modelIdx = line.indexOf('Model', extendsIdx);
+		assert.equal(model!.position.character, modelIdx);
+	});
+
 	it('finds C#-style inheritance list', () => {
 		const refs = discoverRelatedSymbolsInText('class X : I1, I2 {\n}\n');
 		const names = refs.map((r) => r.name).sort();
