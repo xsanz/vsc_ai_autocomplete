@@ -47,6 +47,20 @@ Optional: **Local AI Autocomplete: Refresh Model List** writes ids to the output
 | `template` | CodeLlama-style `fimTemplate` |
 | `chat_pseudo_fim` | Escape hatch via chat API (not true FiM) |
 
+## Related context
+
+When **Include Related Context** is enabled (default), the extension may attach **other workspace files** (e.g. types from `implements` / `extends` on the current class) to the model prompt. Resolution is **language-server first**, then workspace file search.
+
+| Setting | Purpose |
+|---------|---------|
+| `includeRelatedContext` | On by default; set `false` to send **only** the active file to your server |
+| `relatedContextMaxChars` / `relatedContextMaxFiles` | Cap payload size |
+| `relatedContextStrategy` | `auto`, `lsp_only`, or `heuristic_only` |
+
+Install a language extension for best results. Enable **debug** and **Show Log** to see related paths, a **related context snippet** (truncated), editor prefix/suffix snippets, and **API payload** char counts per request. Related + prefix must fit your server context window (lower `prefixMaxChars` or `relatedContextMaxChars` on vLLM if needed).
+
+Details: [docs/RELATED_CONTEXT.md](docs/RELATED_CONTEXT.md)
+
 ## Development
 
 ```bash

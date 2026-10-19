@@ -48,6 +48,14 @@ export function activate(context: vscode.ExtensionContext): void {
 				) {
 					registerProvider();
 				}
+				if (
+					e.affectsConfiguration('localAiAutocomplete.includeRelatedContext') ||
+					e.affectsConfiguration('localAiAutocomplete.relatedContextMaxChars') ||
+					e.affectsConfiguration('localAiAutocomplete.relatedContextMaxFiles') ||
+					e.affectsConfiguration('localAiAutocomplete.relatedContextStrategy')
+				) {
+					provider?.clearCache();
+				}
 				refreshStatusFromConfig();
 			}
 		})

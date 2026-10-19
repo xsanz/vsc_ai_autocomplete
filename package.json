@@ -139,6 +139,36 @@
           "type": "boolean",
           "default": false,
           "description": "Log detailed information to the Local AI Autocomplete output channel."
+        },
+        "localAiAutocomplete.includeRelatedContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include related workspace definitions (e.g. implemented types) in the model prompt. Disable to send only the active file."
+        },
+        "localAiAutocomplete.relatedContextMaxChars": {
+          "type": "number",
+          "default": 8192,
+          "minimum": 0,
+          "maximum": 131072,
+          "description": "Maximum total characters from related workspace files per completion request."
+        },
+        "localAiAutocomplete.relatedContextMaxFiles": {
+          "type": "number",
+          "default": 5,
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Maximum number of related files to attach per request."
+        },
+        "localAiAutocomplete.relatedContextStrategy": {
+          "type": "string",
+          "enum": ["auto", "lsp_only", "heuristic_only"],
+          "enumDescriptions": [
+            "Try language-server definitions first, then workspace file search.",
+            "Use only language-server definition/type-definition providers.",
+            "Use only declaration heuristics and workspace file search (no LSP)."
+          ],
+          "default": "auto",
+          "description": "How to resolve related types to workspace files."
         }
       }
     }
@@ -148,7 +178,7 @@
     "compile": "tsc -p ./ && tsc -p ./tsconfig.test.json",
     "watch": "tsc -watch -p ./",
     "lint": "tsc -p ./ --noEmit && tsc -p ./tsconfig.test.json --noEmit",
-    "test": "npm run compile && node -r ./test/vscode-stub.cjs --test out-test/test/unit/*.test.js out-test/test/integration/*.test.js"
+    "test": "npm run compile && node -r ./test/vscode-stub.cjs --test out-test/test/unit/**/*.test.js out-test/test/integration/*.test.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

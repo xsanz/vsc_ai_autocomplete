@@ -21,6 +21,10 @@ function baseConfig(overrides: Partial<ExtensionConfig> = {}): ExtensionConfig {
 		stop: [],
 		languages: [],
 		debug: false,
+		includeRelatedContext: true,
+		relatedContextMaxChars: 8192,
+		relatedContextMaxFiles: 5,
+		relatedContextStrategy: 'auto',
 		...overrides,
 	};
 }

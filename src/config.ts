@@ -4,6 +4,8 @@ const SECRET_KEY = 'localAiAutocomplete.apiKey';
 
 export type FimMode = 'completions' | 'completions_suffix' | 'template' | 'chat_pseudo_fim';
 
+export type RelatedContextStrategy = 'auto' | 'lsp_only' | 'heuristic_only';
+
 export interface ExtensionConfig {
 	enabled: boolean;
 	baseUrl: string;
@@ -19,6 +21,10 @@ export interface ExtensionConfig {
 	stop: string[];
 	languages: string[];
 	debug: boolean;
+	includeRelatedContext: boolean;
+	relatedContextMaxChars: number;
+	relatedContextMaxFiles: number;
+	relatedContextStrategy: RelatedContextStrategy;
 }
 
 export function getConfig(): ExtensionConfig {
@@ -38,6 +44,10 @@ export function getConfig(): ExtensionConfig {
 		stop: c.get<string[]>('stop', ['\n\n']),
 		languages: c.get<string[]>('languages', []),
 		debug: c.get<boolean>('debug', false),
+		includeRelatedContext: c.get<boolean>('includeRelatedContext', true),
+		relatedContextMaxChars: c.get<number>('relatedContextMaxChars', 8192),
+		relatedContextMaxFiles: c.get<number>('relatedContextMaxFiles', 5),
+		relatedContextStrategy: c.get<RelatedContextStrategy>('relatedContextStrategy', 'auto'),
 	};
 }
 

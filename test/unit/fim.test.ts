@@ -4,6 +4,7 @@ import {
 	buildChatBody,
 	buildCompletionsBody,
 	CHAT_PSEUDO_FIM_SYSTEM,
+	fimRequestPayloadSizes,
 	parseChatResponse,
 	parseCompletionsResponse,
 } from '../../src/api/fim';
@@ -25,6 +26,10 @@ function baseConfig(overrides: Partial<ExtensionConfig> = {}): ExtensionConfig {
 		stop: ['\n\n'],
 		languages: [],
 		debug: false,
+		includeRelatedContext: true,
+		relatedContextMaxChars: 8192,
+		relatedContextMaxFiles: 5,
+		relatedContextStrategy: 'auto',
 		...overrides,
 	};
 }
@@ -63,6 +68,41 @@ describe('buildCompletionsBody', () => {
 		assert.equal(body.prompt, '<PRE>A<SUF>B<MID>');
 		assert.equal('suffix' in body, false);
 	});
+
+	it('completions_suffix wraps prompt when relatedContext set', () => {
+		const body = buildCompletionsBody({
+			prefix: 'pre',
+			suffix: 'suf',
+			relatedContext: '// File: contract.ts\ninterface I {}',
+			config: baseConfig({ fimMode: 'completions_suffix' }),
+		});
+		assert.equal(body.suffix, 'suf');
+		assert.match(String(body.prompt), /contract\.ts/);
+		assert.match(String(body.prompt), /\npre$/);
+	});
+
+	it('template wraps outside rendered template', () => {
+		const body = buildCompletionsBody({
+			prefix: 'A',
+			suffix: 'B',
+			relatedContext: 'REL',
+			config: baseConfig({ fimMode: 'template' }),
+		});
+		const prompt = String(body.prompt);
+		assert.match(prompt, /REL/);
+		assert.match(prompt, /<PRE>A<SUF>B<MID>/);
+	});
+
+	it('completions wraps prefix only', () => {
+		const body = buildCompletionsBody({
+			prefix: 'pre',
+			suffix: 'suf',
+			relatedContext: 'CTX',
+			config: baseConfig({ fimMode: 'completions' }),
+		});
+		assert.match(String(body.prompt), /CTX/);
+		assert.equal('suffix' in body, false);
+	});
 });
 
 describe('buildChatBody', () => {
@@ -77,6 +117,40 @@ describe('buildChatBody', () => {
 		assert.equal(messages[0].content, CHAT_PSEUDO_FIM_SYSTEM);
 		assert.match(messages[1].content, /before-cursor/);
 		assert.match(messages[1].content, /after-cursor/);
+	});
+
+	it('includes related block in user message', () => {
+		const body = buildChatBody({
+			prefix: 'x',
+			suffix: 'y',
+			relatedContext: 'contract source',
+			config: baseConfig({ fimMode: 'chat_pseudo_fim' }),
+		});
+		const messages = body.messages as Array<{ role: string; content: string }>;
+		assert.match(messages[1].content, /contract source/);
+		assert.match(messages[1].content, /```related/);
+	});
+});
+
+describe('fimRequestPayloadSizes', () => {
+	it('counts completions prompt including related wrap', () => {
+		const sizes = fimRequestPayloadSizes({
+			prefix: 'ab',
+			suffix: 'cd',
+			relatedContext: 'REL',
+			config: baseConfig({ fimMode: 'completions' }),
+		});
+		assert.ok(sizes.promptChars > 2);
+		assert.equal(sizes.apiSuffixChars, 0);
+	});
+
+	it('counts chat user message', () => {
+		const sizes = fimRequestPayloadSizes({
+			prefix: 'x',
+			suffix: 'y',
+			config: baseConfig({ fimMode: 'chat_pseudo_fim' }),
+		});
+		assert.ok(sizes.chatUserChars > 0);
 	});
 });
 

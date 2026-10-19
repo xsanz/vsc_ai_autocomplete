@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { fimComplete } from '../api/fim';
+import { fimComplete, fimRequestPayloadSizes } from '../api/fim';
 import { HttpStatusError } from '../api/client';
 import { getApiKey, getConfig } from '../config';
-import { log, logContextDebug } from '../ui/output';
+import { gatherRelatedContext } from './relatedContext';
+import { log, logContextDebug, logFimPayloadDebug, logRelatedContextDebug } from '../ui/output';
 import { StatusBar } from '../ui/statusBar';
 import { simpleHash } from '../util/hash';
 import { extractPrefixSuffix } from './context';
@@ -70,7 +71,20 @@ export class LocalAiInlineCompletionProvider implements vscode.InlineCompletionI
 
 		logContextDebug(prefix, suffix);
 
-		const cacheKey = `${document.uri.toString()}:v${document.version}:${config.model}:${config.fimMode}:${simpleHash(prefix)}:${simpleHash(suffix)}`;
+		if (token.isCancellationRequested) {
+			return undefined;
+		}
+
+		const related = await gatherRelatedContext(document, config, token);
+		if (token.isCancellationRequested) {
+			return undefined;
+		}
+		logRelatedContextDebug(related.paths, related.text.length, related.text);
+
+		const fimReq = { prefix, suffix, config, relatedContext: related.text };
+		logFimPayloadDebug(fimRequestPayloadSizes(fimReq));
+
+		const cacheKey = `${document.uri.toString()}:v${document.version}:${config.model}:${config.fimMode}:${simpleHash(prefix)}:${simpleHash(suffix)}:${simpleHash(related.text)}`;
 		const hit = this.getCache(cacheKey);
 		if (hit) {
 			return this.toItems(position, hit);
@@ -85,9 +99,7 @@ export class LocalAiInlineCompletionProvider implements vscode.InlineCompletionI
 
 		try {
 			const apiKey = await getApiKey(this.secrets);
-			const middle = await fimComplete(
-				{ prefix, suffix, config },
-				{
+			const middle = await fimComplete(fimReq, {
 					baseUrl: config.baseUrl,
 					apiKey,
 					timeoutMs: config.requestTimeoutMs,

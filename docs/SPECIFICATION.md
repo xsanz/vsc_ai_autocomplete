@@ -2,8 +2,9 @@
 
 **Product name (working):** Local AI Autocomplete  
 **Workspace:** `vs_autocomplete`  
-**Version:** Spec 1.0 — MVP  
+**Version:** Spec 1.1  
 **Date:** 2026-10-19  
+**Changelog:** 1.1 — related workspace context for completions (§6.6); align model config and status bar with implementation.
 
 ---
 
@@ -22,11 +23,12 @@ Developers running local LLMs (LM Studio, Ollama, vLLM, llama.cpp server, etc.) 
 | **G3** | **Discover models** from the endpoint (`GET /v1/models`) and let the user pick one. |
 | **G4** | Completions use **FiM**: send prefix (before cursor) and suffix (after cursor); display only the generated *middle* as ghost text. |
 | **G5** | Fail silently in the editor; surface configuration and connectivity issues in a dedicated output channel and status bar. |
+| **G6** | Optional **related workspace context**: attach declaration-linked types from other files to the model prompt when enabled (§6.6). |
 
 ### 1.3 Non-goals (MVP)
 
 - Cloud vendor-specific SDKs (Anthropic, Gemini, etc.).
-- Workspace indexing, RAG, or multi-file context beyond the current document (optional later).
+- Full-workspace RAG/indexing, embedding search, or automatic inclusion of all open editor tabs.
 - Chat panel, refactoring, or command-based “generate code.”
 - Streaming ghost text (MVP may use non-streaming responses only).
 - Model download or process management (user runs the server).
@@ -45,11 +47,12 @@ Developers running local LLMs (LM Studio, Ollama, vLLM, llama.cpp server, etc.) 
 | ID | Story | Acceptance hint |
 |----|--------|-----------------|
 | US-1 | As a user, I set base URL and API key in Settings. | Values persist; invalid URL blocked at save with message. |
-| US-2 | As a user, I refresh the model list from my endpoint. | Models appear in a dropdown; errors shown in output channel. |
-| US-3 | As a user, I pick a model for autocomplete. | Only selected model is used for FiM requests. |
+| US-2 | As a user, I refresh the model list from my endpoint. | Model ids logged to output channel; errors shown there. |
+| US-3 | As a user, I set the model id for autocomplete. | Manual `model` string; only that model is used for FiM requests. |
 | US-4 | As a user, I get inline suggestions while typing. | Ghost text after debounce; Tab accepts per VS Code defaults. |
 | US-5 | As a user, I can disable autocomplete globally. | No network calls when disabled. |
 | US-6 | As a user, I see when the extension is loading or misconfigured. | Status bar: idle / loading / error / disabled. |
+| US-7 | As a user, I implement a type whose contract is in another file. | With related context enabled, debug log lists related paths; prompt includes those definitions. |
 
 ---
 
@@ -87,8 +90,8 @@ vscode.languages.registerInlineCompletionItemProvider(documentSelector, provider
 | Insert range | Ghost text starts at `position`; range typically zero-width at cursor. |
 | Multi-line | Allow `\n` in `insertText`; trim trailing incomplete line if model runs past suffix alignment (see §6.5). |
 | Re-trigger | Debounce after document changes; abort previous request. |
-| Partial accept | Implement `handleDidPartiallyAcceptCompletionItem` when supported — adjust caching keys by accepted prefix length. |
-| Post-accept guard | Short cooldown (e.g. 100–300 ms) after full accept to avoid immediate duplicate suggestion. |
+| Partial accept | Deferred (not in current implementation). |
+| Post-accept guard | Deferred. |
 
 Reference: [VS Code inline completions sample](https://github.com/microsoft/vscode-extension-samples/tree/main/inline-completions).
 
@@ -126,6 +129,10 @@ All settings under namespace `localAiAutocomplete.*` (final ID to match marketpl
 | `stop` | string[] | `["\n\n"]` | Stop sequences passed to API when supported. |
 | `languages` | string[] | `[]` | Language IDs to enable; empty = all `file` documents. |
 | `debug` | boolean | `false` | Verbose logging to output channel. |
+| `includeRelatedContext` | boolean | `true` | Attach related workspace definitions to the model prompt. |
+| `relatedContextMaxChars` | number | `8192` | Max total chars from related files per request. |
+| `relatedContextMaxFiles` | number | `5` | Max related files per request. |
+| `relatedContextStrategy` | enum | `auto` | `auto`, `lsp_only`, or `heuristic_only` (§6.6). |
 
 ### 4.2 API key
 
@@ -198,6 +205,8 @@ Standard OpenAI **Chat Completions** do not define FiM. Local code models often 
 
 Placeholders: `{prefix}`, `{suffix}`.
 
+**Related context and FiM:** When `includeRelatedContext` is on, a related block is prepended to the API `prompt` (or chat user message). Editor `{prefix}` / `{suffix}` in `fimTemplate` stay unwrapped; post-processing uses unwrapped editor prefix/suffix. See §6.6 and [RELATED_CONTEXT.md](RELATED_CONTEXT.md).
+
 ### 5.4 Completion response parsing
 
 Support OpenAI completions response:
@@ -235,7 +244,8 @@ sequenceDiagram
   Provider->>Debouncer: schedule(debounceMs)
   Debouncer->>Provider: fire
   Provider->>Provider: extract prefix/suffix
-  Provider->>FimClient: complete(prefix, suffix, opts)
+  Provider->>Provider: gatherRelatedContext (optional)
+  Provider->>FimClient: complete(prefix, suffix, related, opts)
   FimClient->>Server: POST /completions
   Server-->>FimClient: choices[0].text
   FimClient-->>Provider: middle text
@@ -250,6 +260,7 @@ sequenceDiagram
 | Suffix | Text starting at `position`, bounded by `suffixMaxChars`. |
 | Line integrity | Prefer not to cut mid-UTF-16 surrogate; use document offset APIs. |
 | Empty suffix | Allowed; FiM degrades to “continue at cursor.” |
+| Suffix extraction | Always performed for post-process; `fimMode: completions` omits API `suffix` only. |
 
 ### 6.3 When **not** to request
 
@@ -269,8 +280,14 @@ sequenceDiagram
 
 ### 6.5 Caching (optional MVP)
 
-- Key: hash(model + fimMode + prefixTail + suffixHead).
-- TTL: ~5 s; invalidate on document version change.
+- Key: document URI, version, model, fimMode, hash(prefix), hash(suffix), hash(relatedContext).
+- TTL: ~5 s; `clearCache` when related-context settings change.
+
+### 6.6 Related context
+
+When `includeRelatedContext` is true, before cache lookup the provider gathers snippets from other workspace files linked by type declarations on the active document. Resolution is **LSP-first** (`Definition` / `TypeDefinition`), then generic declaration heuristics and `workspace.findFiles`. Payload is prepended to the model prompt only; ghost-text insertion still uses the active document prefix/suffix. Fail-open on errors. Disable `includeRelatedContext` to restrict HTTP payload to the active file only.
+
+Technical detail: [RELATED_CONTEXT.md](RELATED_CONTEXT.md).
 
 ---
 
@@ -286,6 +303,8 @@ src/
   config.ts                 # read/sync settings + secrets
   completion/
     provider.ts             # InlineCompletionItemProvider
+    relatedContext.ts       # gather related workspace snippets
+    related/                # discover, lsp, fallback, budget, prompt
     context.ts              # prefix/suffix extraction
     postprocess.ts          # trim, overlap, stop
   api/
@@ -314,7 +333,7 @@ src/
 | State | Text | Tooltip |
 |-------|------|---------|
 | Disabled | `AI: off` | Click to enable |
-| Ready | `AI: {modelShort}` | Base URL; click to select model |
+| Ready | `AI: {modelShort}` | Base URL; click to open settings |
 | Loading | `AI: …` | Fetching completion |
 | Error | `AI: !` | Last error summary |
 | No model | `AI: no model` | Set `localAiAutocomplete.model` in Settings |
@@ -339,7 +358,7 @@ First activation with empty `model` (and extension enabled): information message
 
 | Topic | Requirement |
 |-------|-------------|
-| Data residency | Code in prefix/suffix sent only to user-configured URL. |
+| Data residency | Code in prefix/suffix and (when enabled) related workspace files sent only to user-configured URL. |
 | TLS | Support `https://`; no certificate pinning in MVP. |
 | Logging | Debug mode must not log full document by default; log lengths/hashes. |
 | SSRF | Warn if `baseUrl` is not loopback unless user confirms (optional v1.1). |
@@ -366,6 +385,7 @@ First activation with empty `model` (and extension enabled): information message
 | p95 time-to-ghost (local 7B, warm server) | &lt; 2 s (environment-dependent) |
 | Extension activate | &lt; 500 ms excluding network |
 | Memory | Bounded cache (e.g. 50 entries max) |
+| Related gather | Once per debounced completion; parallel URI resolution |
 
 ---
 
@@ -375,7 +395,8 @@ First activation with empty `model` (and extension enabled): information message
 
 - Prefix/suffix truncation.
 - Post-process: suffix overlap removal, stop sequences.
-- FIM body builder per `fimMode`.
+- FIM body builder per `fimMode` (including `relatedContext`).
+- Related discover, prompt wrap, budget assembly.
 - Response parser fixtures.
 
 ### 12.2 Integration tests
@@ -409,20 +430,21 @@ Users must match **model card** FIM token format when using `template`.
 ## 14. MVP acceptance criteria
 
 - [ ] User can configure `baseUrl` and API key.  
-- [ ] “Refresh Model List” populates selectable models from `GET /v1/models`.  
-- [ ] Selected `model` is persisted and shown in status bar.  
+- [ ] “Refresh Model List” logs model ids from `GET /v1/models`.  
+- [ ] Configured `model` string is persisted and shown in status bar.  
 - [ ] Inline ghost completions with cursor **between** existing code (FiM).  
 - [ ] Requests use prefix + suffix per `fimMode`.  
 - [ ] In-flight request cancelled on subsequent edits within debounce window.  
 - [ ] Extension fails silently in editor on server errors.  
-- [ ] User-facing README documents setup, `fimMode`, and server limitations.
+- [ ] User-facing README documents setup, `fimMode`, related context, and server limitations.  
+- [ ] Related context on/off; debug shows related paths when enabled.
 
 ---
 
 ## 15. Future roadmap (post-MVP)
 
 - Streaming inline updates.  
-- Multi-file context (open tabs, imports).  
+- RAG / embeddings; all open tabs; symbol-at-cursor for related types.  
 - Per-language `temperature` / `maxTokens`.  
 - Automatic `fimMode` detection via server metadata.  
 - Workspace trust gates for non-local URLs.  
@@ -435,6 +457,7 @@ Users must match **model card** FIM token format when using `template`.
 | Artifact | Description |
 |----------|-------------|
 | `docs/SPECIFICATION.md` | Canonical product spec |
+| `docs/RELATED_CONTEXT.md` | Related context technical supplement |
 | `README.md` | User setup, FiM modes, compatibility |
 | `package.json` / `src/` | VS Code extension implementation |
 | `test/` | Unit tests + mock HTTP integration tests |
@@ -453,3 +476,4 @@ Users must match **model card** FIM token format when using `template`.
 | `autoSelectFirstModel` | Deferred |
 | SSRF / remote URL warnings | Deferred (v1.1) |
 | Invalid `baseUrl` on save | Not blockable in VS Code UI; validate on change + log |
+| Related context | Default on; strategy `auto`; LSP-first, no per-language parsers in extension |
