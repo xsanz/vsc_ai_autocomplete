@@ -4,6 +4,9 @@
   "description": "Inline code completions using local OpenAI-compatible models (Fill-in-the-Middle)",
   "version": "0.1.0",
   "publisher": "local",
+  "repository": {
+    "url": "https://github.com/xsanz/vsc_ai_autocomplete.git"
+  },
   "engines": {
     "vscode": "^1.86.0"
   },
