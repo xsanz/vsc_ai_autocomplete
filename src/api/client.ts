@@ -72,6 +72,7 @@ async function fetchWithTimeout(
 	}
 	const timeout = setTimeout(() => controller.abort(), opts.timeoutMs);
 	try {
+		// Never log Authorization or apiKey — URL only.
 		log(`HTTP ${init.method ?? 'GET'} ${requestUrl.href}`, true);
 		const res = await fetch(requestUrl, { ...init, signal: controller.signal });
 		if (res.status === 401 || res.status === 403) {

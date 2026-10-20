@@ -1,0 +1,393 @@
+{
+  "source": "https://code.visualstudio.com/llms.txt",
+  "section": "Extension API",
+  "note": "Full verbatim Markdown mirrors; not summarized",
+  "articleCount": 77,
+  "articles": [
+    {
+      "path": "advanced-topics/extension-host.md",
+      "url": "https://code.visualstudio.com/api/advanced-topics/extension-host.md",
+      "sizeBytes": 5560
+    },
+    {
+      "path": "advanced-topics/python-extension-template.md",
+      "url": "https://code.visualstudio.com/api/advanced-topics/python-extension-template.md",
+      "sizeBytes": 6906
+    },
+    {
+      "path": "advanced-topics/remote-extensions.md",
+      "url": "https://code.visualstudio.com/api/advanced-topics/remote-extensions.md",
+      "sizeBytes": 44435
+    },
+    {
+      "path": "advanced-topics/tslint-eslint-migration.md",
+      "url": "https://code.visualstudio.com/api/advanced-topics/tslint-eslint-migration.md",
+      "sizeBytes": 3867
+    },
+    {
+      "path": "advanced-topics/using-proposed-api.md",
+      "url": "https://code.visualstudio.com/api/advanced-topics/using-proposed-api.md",
+      "sizeBytes": 4348
+    },
+    {
+      "path": "api-hub.md",
+      "url": "https://code.visualstudio.com/api",
+      "sizeBytes": 5094
+    },
+    {
+      "path": "extension-capabilities/common-capabilities.md",
+      "url": "https://code.visualstudio.com/api/extension-capabilities/common-capabilities.md",
+      "sizeBytes": 6042
+    },
+    {
+      "path": "extension-capabilities/extending-workbench.md",
+      "url": "https://code.visualstudio.com/api/extension-capabilities/extending-workbench.md",
+      "sizeBytes": 2405
+    },
+    {
+      "path": "extension-capabilities/overview.md",
+      "url": "https://code.visualstudio.com/api/extension-capabilities/overview.md",
+      "sizeBytes": 8041
+    },
+    {
+      "path": "extension-capabilities/theming.md",
+      "url": "https://code.visualstudio.com/api/extension-capabilities/theming.md",
+      "sizeBytes": 2362
+    },
+    {
+      "path": "extension-guides/ai/ai-extensibility-overview.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/ai-extensibility-overview.md",
+      "sizeBytes": 8035
+    },
+    {
+      "path": "extension-guides/ai/chat-tutorial.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/chat-tutorial.md",
+      "sizeBytes": 16127
+    },
+    {
+      "path": "extension-guides/ai/chat.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/chat.md",
+      "sizeBytes": 37777
+    },
+    {
+      "path": "extension-guides/ai/language-model-chat-provider.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/language-model-chat-provider.md",
+      "sizeBytes": 8962
+    },
+    {
+      "path": "extension-guides/ai/language-model-tutorial.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/language-model-tutorial.md",
+      "sizeBytes": 16010
+    },
+    {
+      "path": "extension-guides/ai/language-model.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/language-model.md",
+      "sizeBytes": 15321
+    },
+    {
+      "path": "extension-guides/ai/mcp.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/mcp.md",
+      "sizeBytes": 26962
+    },
+    {
+      "path": "extension-guides/ai/prompt-tsx.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/prompt-tsx.md",
+      "sizeBytes": 11278
+    },
+    {
+      "path": "extension-guides/ai/tools.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/ai/tools.md",
+      "sizeBytes": 15949
+    },
+    {
+      "path": "extension-guides/color-theme.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/color-theme.md",
+      "sizeBytes": 7033
+    },
+    {
+      "path": "extension-guides/command.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/command.md",
+      "sizeBytes": 12512
+    },
+    {
+      "path": "extension-guides/custom-data-extension.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/custom-data-extension.md",
+      "sizeBytes": 1087
+    },
+    {
+      "path": "extension-guides/custom-editors.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/custom-editors.md",
+      "sizeBytes": 26443
+    },
+    {
+      "path": "extension-guides/debugger-extension.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/debugger-extension.md",
+      "sizeBytes": 25126
+    },
+    {
+      "path": "extension-guides/file-icon-theme.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/file-icon-theme.md",
+      "sizeBytes": 10296
+    },
+    {
+      "path": "extension-guides/markdown-extension.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/markdown-extension.md",
+      "sizeBytes": 12872
+    },
+    {
+      "path": "extension-guides/notebook.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/notebook.md",
+      "sizeBytes": 27087
+    },
+    {
+      "path": "extension-guides/overview.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/overview.md",
+      "sizeBytes": 17526
+    },
+    {
+      "path": "extension-guides/product-icon-theme.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/product-icon-theme.md",
+      "sizeBytes": 4981
+    },
+    {
+      "path": "extension-guides/scm-provider.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/scm-provider.md",
+      "sizeBytes": 10140
+    },
+    {
+      "path": "extension-guides/task-provider.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/task-provider.md",
+      "sizeBytes": 8913
+    },
+    {
+      "path": "extension-guides/telemetry.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/telemetry.md",
+      "sizeBytes": 3601
+    },
+    {
+      "path": "extension-guides/testing.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/testing.md",
+      "sizeBytes": 20339
+    },
+    {
+      "path": "extension-guides/tree-view.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/tree-view.md",
+      "sizeBytes": 19161
+    },
+    {
+      "path": "extension-guides/virtual-documents.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/virtual-documents.md",
+      "sizeBytes": 7180
+    },
+    {
+      "path": "extension-guides/virtual-workspaces.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/virtual-workspaces.md",
+      "sizeBytes": 10832
+    },
+    {
+      "path": "extension-guides/web-extensions.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/web-extensions.md",
+      "sizeBytes": 37446
+    },
+    {
+      "path": "extension-guides/webview.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/webview.md",
+      "sizeBytes": 46221
+    },
+    {
+      "path": "extension-guides/workspace-trust.md",
+      "url": "https://code.visualstudio.com/api/extension-guides/workspace-trust.md",
+      "sizeBytes": 9661
+    },
+    {
+      "path": "get-started/extension-anatomy.md",
+      "url": "https://code.visualstudio.com/api/get-started/extension-anatomy.md",
+      "sizeBytes": 7325
+    },
+    {
+      "path": "get-started/wrapping-up.md",
+      "url": "https://code.visualstudio.com/api/get-started/wrapping-up.md",
+      "sizeBytes": 3579
+    },
+    {
+      "path": "get-started/your-first-extension.md",
+      "url": "https://code.visualstudio.com/api/get-started/your-first-extension.md",
+      "sizeBytes": 5242
+    },
+    {
+      "path": "language-extensions/embedded-languages.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/embedded-languages.md",
+      "sizeBytes": 14954
+    },
+    {
+      "path": "language-extensions/language-configuration-guide.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/language-configuration-guide.md",
+      "sizeBytes": 10079
+    },
+    {
+      "path": "language-extensions/language-server-extension-guide.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/language-server-extension-guide.md",
+      "sizeBytes": 42078
+    },
+    {
+      "path": "language-extensions/overview.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/overview.md",
+      "sizeBytes": 5047
+    },
+    {
+      "path": "language-extensions/programmatic-language-features.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/programmatic-language-features.md",
+      "sizeBytes": 34973
+    },
+    {
+      "path": "language-extensions/semantic-highlight-guide.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide.md",
+      "sizeBytes": 15021
+    },
+    {
+      "path": "language-extensions/snippet-guide.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/snippet-guide.md",
+      "sizeBytes": 2283
+    },
+    {
+      "path": "language-extensions/syntax-highlight-guide.md",
+      "url": "https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide.md",
+      "sizeBytes": 19092
+    },
+    {
+      "path": "references/activation-events.md",
+      "url": "https://code.visualstudio.com/api/references/activation-events.md",
+      "sizeBytes": 13971
+    },
+    {
+      "path": "references/commands.md",
+      "url": "https://code.visualstudio.com/api/references/commands.md",
+      "sizeBytes": 21489
+    },
+    {
+      "path": "references/contribution-points.md",
+      "url": "https://code.visualstudio.com/api/references/contribution-points.md",
+      "sizeBytes": 77172
+    },
+    {
+      "path": "references/document-selector.md",
+      "url": "https://code.visualstudio.com/api/references/document-selector.md",
+      "sizeBytes": 4373
+    },
+    {
+      "path": "references/extension-manifest.md",
+      "url": "https://code.visualstudio.com/api/references/extension-manifest.md",
+      "sizeBytes": 23938
+    },
+    {
+      "path": "references/icons-in-labels.md",
+      "url": "https://code.visualstudio.com/api/references/icons-in-labels.md",
+      "sizeBytes": 60775
+    },
+    {
+      "path": "references/theme-color.md",
+      "url": "https://code.visualstudio.com/api/references/theme-color.md",
+      "sizeBytes": 107607
+    },
+    {
+      "path": "references/vscode-api.md",
+      "url": "https://code.visualstudio.com/api/references/vscode-api.md",
+      "sizeBytes": 2367692
+    },
+    {
+      "path": "references/when-clause-contexts.md",
+      "url": "https://code.visualstudio.com/api/references/when-clause-contexts.md",
+      "sizeBytes": 21828
+    },
+    {
+      "path": "ux-guidelines/activity-bar.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/activity-bar.md",
+      "sizeBytes": 959
+    },
+    {
+      "path": "ux-guidelines/command-palette.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/command-palette.md",
+      "sizeBytes": 968
+    },
+    {
+      "path": "ux-guidelines/context-menus.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/context-menus.md",
+      "sizeBytes": 991
+    },
+    {
+      "path": "ux-guidelines/editor-actions.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/editor-actions.md",
+      "sizeBytes": 1163
+    },
+    {
+      "path": "ux-guidelines/notifications.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/notifications.md",
+      "sizeBytes": 4328
+    },
+    {
+      "path": "ux-guidelines/overview.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/overview.md",
+      "sizeBytes": 6552
+    },
+    {
+      "path": "ux-guidelines/panel.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/panel.md",
+      "sizeBytes": 2285
+    },
+    {
+      "path": "ux-guidelines/quick-picks.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/quick-picks.md",
+      "sizeBytes": 2866
+    },
+    {
+      "path": "ux-guidelines/settings.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/settings.md",
+      "sizeBytes": 1006
+    },
+    {
+      "path": "ux-guidelines/sidebars.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/sidebars.md",
+      "sizeBytes": 3232
+    },
+    {
+      "path": "ux-guidelines/status-bar.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/status-bar.md",
+      "sizeBytes": 2496
+    },
+    {
+      "path": "ux-guidelines/views.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/views.md",
+      "sizeBytes": 5128
+    },
+    {
+      "path": "ux-guidelines/walkthroughs.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/walkthroughs.md",
+      "sizeBytes": 1312
+    },
+    {
+      "path": "ux-guidelines/webviews.md",
+      "url": "https://code.visualstudio.com/api/ux-guidelines/webviews.md",
+      "sizeBytes": 2516
+    },
+    {
+      "path": "working-with-extensions/bundling-extension.md",
+      "url": "https://code.visualstudio.com/api/working-with-extensions/bundling-extension.md",
+      "sizeBytes": 17570
+    },
+    {
+      "path": "working-with-extensions/continuous-integration.md",
+      "url": "https://code.visualstudio.com/api/working-with-extensions/continuous-integration.md",
+      "sizeBytes": 8769
+    },
+    {
+      "path": "working-with-extensions/publishing-extension.md",
+      "url": "https://code.visualstudio.com/api/working-with-extensions/publishing-extension.md",
+      "sizeBytes": 35611
+    },
+    {
+      "path": "working-with-extensions/testing-extension.md",
+      "url": "https://code.visualstudio.com/api/working-with-extensions/testing-extension.md",
+      "sizeBytes": 16770
+    }
+  ]
+}

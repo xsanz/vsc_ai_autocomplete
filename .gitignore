@@ -3,3 +3,5 @@ out/
 out-test/
 *.vsix
 .DS_Store
+local-ai-last-completions-payload.json
+local-ai-last-completions-curl.sh

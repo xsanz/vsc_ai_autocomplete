@@ -4,11 +4,15 @@ import { listModels } from './api/models';
 import { documentSelector } from './completion/context';
 import { LocalAiInlineCompletionProvider } from './completion/provider';
 import { getApiKey, getConfig, setApiKey, setEnabled, validateBaseUrl } from './config';
+import { HostTrustService } from './security/hostTrust';
+import { assertCanSendHttp, isWorkspaceTrustedForExtension, untrustedWorkspaceMessage } from './security/httpGate';
+import { manageApprovedServersCommand } from './security/manageServers';
 import { getOutputChannel, log, resetAuthErrorSessionFlag } from './ui/output';
 import { StatusBar } from './ui/statusBar';
 
 let statusBar: StatusBar | undefined;
 let provider: LocalAiInlineCompletionProvider | undefined;
+let hostTrust: HostTrustService | undefined;
 let providerRegistration: vscode.Disposable | undefined;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 let pendingCompletion:
@@ -23,7 +27,8 @@ export function activate(context: vscode.ExtensionContext): void {
 	statusBar = new StatusBar();
 	context.subscriptions.push(statusBar);
 
-	provider = new LocalAiInlineCompletionProvider(context.secrets, statusBar);
+	hostTrust = new HostTrustService(context.globalState);
+	provider = new LocalAiInlineCompletionProvider(context.secrets, statusBar, hostTrust);
 
 	context.subscriptions.push({
 		dispose: () => {
@@ -37,6 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
 		vscode.workspace.onDidChangeConfiguration((e) => {
 			if (e.affectsConfiguration('localAiAutocomplete')) {
 				if (e.affectsConfiguration('localAiAutocomplete.baseUrl')) {
+					hostTrust?.onBaseUrlChanged();
 					const err = validateBaseUrl(getConfig().baseUrl);
 					if (err) {
 						log(err);
@@ -63,6 +69,13 @@ export function activate(context: vscode.ExtensionContext): void {
 		})
 	);
 
+	context.subscriptions.push(
+		vscode.workspace.onDidGrantWorkspaceTrust(() => {
+			registerProvider();
+			refreshStatusFromConfig();
+		})
+	);
+
 	registerCommands(context);
 	refreshStatusFromConfig();
 	maybeShowOnboarding(context);
@@ -83,6 +96,7 @@ export function deactivate(): void {
 	statusBar?.dispose();
 	statusBar = undefined;
 	provider = undefined;
+	hostTrust = undefined;
 }
 
 function registerProvider(): void {
@@ -174,11 +188,9 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('localAiAutocomplete.setApiKey', async () => {
-			const current = await getApiKey(context.secrets);
 			const value = await vscode.window.showInputBox({
 				title: 'Local AI Autocomplete API Key',
 				password: true,
-				value: current,
 				placeHolder: 'Bearer token (leave empty to clear)',
 			});
 			if (value === undefined) {
@@ -207,6 +219,10 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('localAiAutocomplete.copyLastApiPayload', async () => {
+			if (!isWorkspaceTrustedForExtension()) {
+				void vscode.window.showWarningMessage(untrustedWorkspaceMessage());
+				return;
+			}
 			const { copyLastApiPayloadToClipboard } = await import('./api/saveLastPayload');
 			await copyLastApiPayloadToClipboard();
 		})
@@ -214,19 +230,51 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('localAiAutocomplete.saveLastApiPayload', async () => {
+			if (!isWorkspaceTrustedForExtension()) {
+				void vscode.window.showWarningMessage(untrustedWorkspaceMessage());
+				return;
+			}
 			const { saveLastApiPayloadToWorkspace } = await import('./api/saveLastPayload');
-			await saveLastApiPayloadToWorkspace(context.secrets, getApiKey);
+			await saveLastApiPayloadToWorkspace();
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('localAiAutocomplete.manageApprovedServers', async () => {
+			if (!hostTrust) {
+				return;
+			}
+			await manageApprovedServersCommand(context, hostTrust, () => {
+				provider?.clearCache();
+			});
 		})
 	);
 }
 
 async function refreshModelsCommand(secrets: vscode.SecretStorage): Promise<void> {
+	if (!isWorkspaceTrustedForExtension()) {
+		vscode.window.showWarningMessage(untrustedWorkspaceMessage());
+		return;
+	}
+
 	const config = getConfig();
 	const urlErr = validateBaseUrl(config.baseUrl);
 	if (urlErr) {
 		vscode.window.showErrorMessage(urlErr);
 		return;
 	}
+
+	if (!hostTrust) {
+		return;
+	}
+	const gate = await assertCanSendHttp(config.baseUrl, hostTrust);
+	if (!gate.ok) {
+		if (gate.reason !== 'Server not approved.') {
+			vscode.window.showWarningMessage(gate.reason);
+		}
+		return;
+	}
+
 	try {
 		const apiKey = await getApiKey(secrets);
 		log(

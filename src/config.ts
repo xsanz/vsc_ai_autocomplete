@@ -64,7 +64,13 @@ export function validateBaseUrl(url: string): string | undefined {
 		return 'baseUrl is empty';
 	}
 	try {
-		new URL(url);
+		const parsed = new URL(url);
+		if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+			return `baseUrl must use http or https (got ${parsed.protocol})`;
+		}
+		if (parsed.href.includes("'")) {
+			return 'baseUrl must not contain single quotes';
+		}
 		return undefined;
 	} catch {
 		return `Invalid baseUrl: ${url}`;

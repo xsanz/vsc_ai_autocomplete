@@ -14,6 +14,12 @@
   "activationEvents": [
     "onStartupFinished"
   ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Local AI Autocomplete sends editor and workspace file content to your configured HTTP server. Trust this workspace before enabling."
+    }
+  },
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -44,6 +50,10 @@
       {
         "command": "localAiAutocomplete.saveLastApiPayload",
         "title": "Local AI Autocomplete: Save Last API Payload to Workspace"
+      },
+      {
+        "command": "localAiAutocomplete.manageApprovedServers",
+        "title": "Local AI Autocomplete: Manage Approved Servers"
       }
     ],
     "configuration": {
@@ -169,7 +179,11 @@
         },
         "localAiAutocomplete.relatedContextStrategy": {
           "type": "string",
-          "enum": ["auto", "lsp_only", "heuristic_only"],
+          "enum": [
+            "auto",
+            "lsp_only",
+            "heuristic_only"
+          ],
           "enumDescriptions": [
             "Try language-server definitions first, then workspace file search.",
             "Use only language-server definition/type-definition providers.",

@@ -358,12 +358,16 @@ First activation with empty `model` (and extension enabled): information message
 
 ## 9. Security and privacy
 
+See **[SECURITY.md](SECURITY.md)** for workspace trust, per-host approval, payload files, and API key handling.
+
 | Topic | Requirement |
 |-------|-------------|
-| Data residency | Code in prefix/suffix and (when enabled) related workspace files sent only to user-configured URL. |
+| Data residency | Code in prefix/suffix and (when enabled) related workspace files sent only to user-configured URL after user approves that host. |
+| Workspace trust | Extension inactive in Restricted Mode (`untrustedWorkspaces.supported: false`). |
+| `baseUrl` | `http`/`https` only; validated at use time and on settings change (VS Code cannot block invalid settings on save). |
 | TLS | Support `https://`; no certificate pinning in MVP. |
-| Logging | Debug mode must not log full document by default; log lengths/hashes. |
-| SSRF | Warn if `baseUrl` is not loopback unless user confirms (optional v1.1). |
+| Logging | Debug mode may log code fragments; default logs lengths/hashes where applicable. |
+| SSRF | Per-host approval dialog (not loopback-only blocklist in MVP). |
 
 ---
 
@@ -449,7 +453,7 @@ Users must match **model card** FIM token format when using `template`.
 - RAG / embeddings; all open tabs; symbol-at-cursor for related types.  
 - Per-language `temperature` / `maxTokens`.  
 - Automatic `fimMode` detection via server metadata.  
-- Workspace trust gates for non-local URLs.  
+- Additional enterprise policy hooks beyond host approval.  
 - Opt-in telemetry (latency only, no code).
 
 ---

@@ -8,6 +8,8 @@ import { StatusBar } from '../ui/statusBar';
 import { simpleHash } from '../util/hash';
 import { extractPrefixSuffix } from './context';
 import { postProcessCompletion } from './postprocess';
+import { assertCanSendHttp } from '../security/httpGate';
+import type { HostTrustService } from '../security/hostTrust';
 
 const CACHE_TTL_MS = 5000;
 const CACHE_MAX = 50;
@@ -25,7 +27,8 @@ export class LocalAiInlineCompletionProvider implements vscode.InlineCompletionI
 
 	constructor(
 		private readonly secrets: vscode.SecretStorage,
-		private readonly statusBar: StatusBar
+		private readonly statusBar: StatusBar,
+		private readonly hostTrust: HostTrustService
 	) {}
 
 	abortInFlight(): void {
@@ -46,6 +49,11 @@ export class LocalAiInlineCompletionProvider implements vscode.InlineCompletionI
 	): Promise<vscode.InlineCompletionItem[] | undefined> {
 		const config = getConfig();
 		if (!config.enabled || !config.model || !config.baseUrl) {
+			return undefined;
+		}
+
+		const gate = await assertCanSendHttp(config.baseUrl, this.hostTrust);
+		if (!gate.ok) {
 			return undefined;
 		}
 

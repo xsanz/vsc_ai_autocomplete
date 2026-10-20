@@ -17,17 +17,13 @@ export async function copyLastApiPayloadToClipboard(): Promise<boolean> {
 		return false;
 	}
 	await vscode.env.clipboard.writeText(json);
-	const cap = getLastCapturedRequest();
 	void vscode.window.showInformationMessage(
-		`Copied JSON body for ${cap?.path ?? 'API'} (${json.length} chars) to clipboard.`
+		`Copied JSON body (${json.length} chars). May contain source code; API key is not included.`
 	);
 	return true;
 }
 
-export async function saveLastApiPayloadToWorkspace(
-	secrets: vscode.SecretStorage,
-	getApiKey: (s: vscode.SecretStorage) => Promise<string>
-): Promise<boolean> {
+export async function saveLastApiPayloadToWorkspace(): Promise<boolean> {
 	const captured = getLastCapturedRequest();
 	const json = lastRequestBodyJson(true);
 	if (!captured || !json) {
@@ -43,12 +39,19 @@ export async function saveLastApiPayloadToWorkspace(
 		return false;
 	}
 
+	const confirm = await vscode.window.showWarningMessage(
+		`Save ${PAYLOAD_FILE} and ${CURL_FILE}? They may contain full source code from your project. Do not commit secrets or add to git.`,
+		'Save',
+		'Cancel'
+	);
+	if (confirm !== 'Save') {
+		return false;
+	}
+
 	const payloadUri = vscode.Uri.joinPath(folder.uri, PAYLOAD_FILE);
 	const curlUri = vscode.Uri.joinPath(folder.uri, CURL_FILE);
-	const apiKey = await getApiKey(secrets);
-	const keyForCurl = apiKey ? apiKey : 'YOUR_API_KEY';
 
-	const curl = formatCurlWithPayloadFile(captured, PAYLOAD_FILE, keyForCurl);
+	const curl = formatCurlWithPayloadFile(captured, PAYLOAD_FILE);
 	const curlScript =
 		`#!/usr/bin/env bash\n# Generated ${captured.capturedAt}\n# POST ${captured.url}\n\n` +
 		curl +

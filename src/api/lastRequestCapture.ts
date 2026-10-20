@@ -43,19 +43,16 @@ export function lastRequestBodyJson(pretty = true): string | undefined {
 	return JSON.stringify(lastCaptured.body, undefined, pretty ? 2 : 0);
 }
 
+/** Dev replay only — never embed a real API key. */
 export function formatCurlWithPayloadFile(
 	captured: CapturedApiRequest,
-	payloadFileName: string,
-	apiKeyPlaceholder = 'YOUR_API_KEY'
+	payloadFileName: string
 ): string {
-	const auth =
-		apiKeyPlaceholder && apiKeyPlaceholder !== 'YOUR_API_KEY'
-			? `-H 'Authorization: Bearer ${apiKeyPlaceholder}'`
-			: `-H 'Authorization: Bearer YOUR_API_KEY'`;
 	return [
+		'# Set your key before running: export LOCAL_AI_API_KEY=your-key-here',
 		`curl -sS -X POST '${captured.url}' \\`,
 		`  -H 'Content-Type: application/json' \\`,
-		`  ${auth} \\`,
+		`  -H "Authorization: Bearer \${LOCAL_AI_API_KEY:-YOUR_API_KEY}" \\`,
 		`  -d @${payloadFileName}`,
 	].join('\n');
 }

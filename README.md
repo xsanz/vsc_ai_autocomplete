@@ -2,12 +2,21 @@
 
 VS Code extension for **inline ghost-text code completion** using **local** (or self-hosted) LLMs via an **OpenAI-compatible** HTTP API. Completions use **Fill-in-the-Middle (FiM)**.
 
-**Specification:** [docs/SPECIFICATION.md](docs/SPECIFICATION.md)
+**Specification:** [docs/SPECIFICATION.md](docs/SPECIFICATION.md)  
+**Security / data egress:** [docs/SECURITY.md](docs/SECURITY.md)  
+**VS Code Extension API (verbatim, from [llms.txt](https://code.visualstudio.com/llms.txt)):** [docs/vscode-api/README.md](docs/vscode-api/README.md)
 
 ## Requirements
 
 - VS Code 1.86+
 - OpenAI-compatible server (LM Studio, vLLM, llama.cpp server, Ollama OpenAI bridge, etc.)
+
+## Security
+
+- The extension does **not** run in **Restricted Mode** until you trust the workspace.
+- The first request to each `baseUrl` **host** asks for one-time approval (editor and related file content, and optional Bearer API key).
+- **Manage Approved Servers** revokes a host and clears your stored API key.
+- Enabling **debug** may log code snippets in the output channel.
 
 ## Setup
 
@@ -35,7 +44,8 @@ Optional: **Local AI Autocomplete: Refresh Model List** writes ids to the output
 | Toggle Enabled | Turn completions on/off |
 | Refresh Model List | Log available model ids (paste into **Model** yourself) |
 | Open Settings | Jump to extension settings |
-| Set API Key | Secret storage |
+| Set API Key | Secret storage (field is empty; leave blank to clear) |
+| Manage Approved Servers | Revoke per-host approval; clears API key on revoke |
 | Show Log | Output channel |
 
 ## FiM modes (`localAiAutocomplete.fimMode`)
@@ -78,9 +88,9 @@ chmod +x local-ai-last-completions-curl.sh
 ./local-ai-last-completions-curl.sh
 ```
 
-Or: `curl ... -d @local-ai-last-completions-payload.json` (see the generated shell script for your `baseUrl`).
+Or: `curl ... -d @local-ai-last-completions-payload.json` (see the generated shell script for your `baseUrl`). Set `LOCAL_AI_API_KEY` before running the curl script; the extension never writes your real key into that file.
 
-Enable **debug** to log when a payload is captured. If no completion ran yet (or the request was never sent), the commands warn that nothing was captured.
+Payload JSON may contain **full source** from your project — do not commit `local-ai-last-completions-payload.json` or share it publicly. Enable **debug** to log when a payload is captured. If no completion ran yet (or the request was never sent), the commands warn that nothing was captured.
 
 ## Development
 

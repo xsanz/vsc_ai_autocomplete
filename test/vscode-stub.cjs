@@ -2,7 +2,15 @@
 
 const Module = require('module');
 
+class Position {
+	constructor(line, character) {
+		this.line = line;
+		this.character = character;
+	}
+}
+
 const vscodeStub = {
+	Position,
 	workspace: {
 		getConfiguration: () => ({
 			get: (_key, defaultValue) => defaultValue,

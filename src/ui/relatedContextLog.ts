@@ -32,6 +32,13 @@ export function buildRelatedContextLogLines(input: RelatedContextLogInput): stri
 
 	if (!hasFiles) {
 		lines.push('Related context: none');
+		if (!input.debug || input.skipped.length === 0) {
+			return lines;
+		}
+		lines.unshift(`Related resolution strategy: ${input.strategy}`);
+		for (const s of input.skipped) {
+			lines.push(`Related resolve: ${s.symbol} → skipped (${formatSkipReason(s.reason)})`);
+		}
 		return lines;
 	}
 
@@ -50,13 +57,7 @@ export function buildRelatedContextLogLines(input: RelatedContextLogInput): stri
 		lines.push(`Related resolve: ${e.symbol} → ${e.relativePath} (${e.source})`);
 	}
 	for (const s of input.skipped) {
-		let reason = 'unresolved or excluded';
-		if (s.reason === 'same_file') {
-			reason = 'same file';
-		} else if (s.reason === 'vendor_disabled') {
-			reason = 'vendor disabled';
-		}
-		lines.push(`Related resolve: ${s.symbol} → skipped (${reason})`);
+		lines.push(`Related resolve: ${s.symbol} → skipped (${formatSkipReason(s.reason)})`);
 	}
 
 	if (input.text.length > 0) {
@@ -66,4 +67,14 @@ export function buildRelatedContextLogLines(input: RelatedContextLogInput): stri
 	}
 
 	return lines;
+}
+
+function formatSkipReason(reason: RelatedSkippedEntry['reason']): string {
+	if (reason === 'same_file') {
+		return 'same file';
+	}
+	if (reason === 'vendor_disabled') {
+		return 'vendor disabled';
+	}
+	return 'unresolved or excluded';
 }
